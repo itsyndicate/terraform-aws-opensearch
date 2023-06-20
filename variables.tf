@@ -89,12 +89,6 @@ variable "tls_security_policy" {
   default     = "Policy-Min-TLS-1-2-2019-07"
 }
 
-variable "vpc" {
-  description = "VPC ID"
-  type        = string
-  default     = ""
-}
-
 variable "subnet_ids" {
   description = "CIDS blocks of subnets."
   type        = list(string)
@@ -111,12 +105,6 @@ variable "cognito_enabled" {
   description = "Cognito authentification enabled for OpenSearch."
   type        = bool
   default     = false
-}
-
-variable "allowed_cidrs" {
-  type        = list(string)
-  description = "Allowed cidrs in security group."
-  default     = []
 }
 
 variable "zone_id" {
@@ -247,10 +235,4 @@ variable "create_linked_role" {
   type        = bool
   default     = true
   description = "Should linked role be created"
-}
-
-variable "default_security_group_name" {
-  type        = string
-  default     = ""
-  description = "Default security group name"
 }

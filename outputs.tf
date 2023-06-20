@@ -1,10 +1,3 @@
-output "os_password" {
-  value       = try(random_password.password[0].result, null)
-  description = "Master user password for OpenSearch"
-  sensitive   = true
-}
-
-
 output "cognito_map" {
   description = "cognito info"
   value = var.cognito_enabled ? { "user_pool" = try(aws_cognito_user_pool.user_pool[0].id, null)

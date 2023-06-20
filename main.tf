@@ -4,51 +4,6 @@ locals {
 
 data "aws_caller_identity" "current" {}
 
-data "aws_vpc" "selected" {
-  count = var.inside_vpc ? 1 : 0
-  id    = var.vpc
-}
-
-# Generate random password if not given when `internal_user_database_enabled` is true
-resource "random_password" "password" {
-  count       = var.internal_user_database_enabled && var.master_password == "" ? 1 : 0
-  length      = 32
-  special     = false
-  min_numeric = 1
-  min_special = 1
-  min_upper   = 1
-}
-
-# Store master user_name and password to `Systems Manager` -> `Parameter Store`
-resource "aws_ssm_parameter" "opensearch_master_user" {
-  count       = var.internal_user_database_enabled ? 1 : 0
-  name        = "/opensearch/${var.name}/MASTER_USER"
-  description = "opensearch_password for ${var.name} domain"
-  type        = "SecureString"
-  value       = "${var.master_user_name},${coalesce(var.master_password, try(random_password.password[0].result, ""))}"
-}
-
-resource "aws_security_group" "es" {
-  count       = var.inside_vpc ? 1 : 0
-  name        = var.default_security_group_name == "" ? "${var.vpc}-elasticsearch" : var.default_security_group_name
-  description = "Managed by Terraform"
-  vpc_id      = data.aws_vpc.selected[0].id
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = var.allowed_cidrs
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = var.allowed_cidrs
-  }
-}
-
 resource "aws_iam_service_linked_role" "es" {
   count            = var.create_linked_role ? 1 : 0
   aws_service_name = var.aws_service_name_for_linked_role
@@ -73,7 +28,7 @@ resource "aws_opensearch_domain" "opensearch" {
     master_user_options {
       master_user_arn      = var.master_user_arn == "" ? try(aws_iam_role.authenticated[0].arn, null) : var.master_user_arn
       master_user_name     = var.internal_user_database_enabled ? var.master_user_name : ""
-      master_user_password = var.internal_user_database_enabled ? coalesce(var.master_password, try(random_password.password[0].result, "")) : ""
+      master_user_password = var.internal_user_database_enabled ? var.master_password : ""
     }
   }
 
