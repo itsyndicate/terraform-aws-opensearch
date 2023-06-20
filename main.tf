@@ -25,6 +25,7 @@ resource "aws_opensearch_domain" "opensearch" {
   advanced_security_options {
     enabled                        = var.advanced_security_options_enabled
     internal_user_database_enabled = var.internal_user_database_enabled
+    anonymous_auth_enabled         = var.anonymous_auth_enabled
     master_user_options {
       master_user_arn      = var.master_user_arn == "" ? try(aws_iam_role.authenticated[0].arn, null) : var.master_user_arn
       master_user_name     = var.internal_user_database_enabled ? var.master_user_name : ""
@@ -148,6 +149,11 @@ resource "aws_opensearch_domain" "opensearch" {
     custom_endpoint_certificate_arn = var.custom_endpoint_enabled ? var.custom_endpoint_certificate_arn : null
     tls_security_policy             = var.tls_security_policy
   }
+
+  auto_tune_options = var.auto_tune_options
+
+  off_peak_window_options = var.off_peak_window_options
+
   tags       = var.tags
   depends_on = [aws_iam_service_linked_role.es[0], time_sleep.role_dependency]
 }

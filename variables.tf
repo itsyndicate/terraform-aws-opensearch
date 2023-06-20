@@ -151,6 +151,11 @@ variable "internal_user_database_enabled" {
   default     = false
 }
 
+variable "anonymous_auth_enabled" {
+  type        = bool
+  description = "Whether Anonymous auth is enabled. Enables fine-grained access control on an existing domain"
+  default     = true
+}
 
 variable "create_a_record" {
   type        = bool
@@ -235,4 +240,14 @@ variable "create_linked_role" {
   type        = bool
   default     = true
   description = "Should linked role be created"
+}
+
+variable "auto_tune_options" {
+  type        = map(any)
+  description = "Configuration block for the Auto-Tune options of the domain"
+}
+
+variable "off_peak_window_options" {
+  type        = any
+  description = "Configuration to add Off Peak update options"
 }
