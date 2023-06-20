@@ -1,6 +1,6 @@
 # AWS OpenSearch Terraform Module
 
-## Requirements
+## Source
 
 Forked from https://github.com/cyberlabrs/terraform-aws-opensearch
 
