@@ -10,6 +10,7 @@ resource "aws_iam_service_linked_role" "es" {
 }
 
 resource "time_sleep" "role_dependency" {
+  count           = var.cognito_enabled ? 1 : 0
   create_duration = "20s"
 
   triggers = {
@@ -39,7 +40,7 @@ resource "aws_opensearch_domain" "opensearch" {
     for_each = var.inside_vpc ? [1] : []
     content {
       subnet_ids         = var.subnet_ids
-      security_group_ids = [var.sg_ids, aws_security_group.es[0].id]
+      security_group_ids = var.sg_ids
     }
   }
 
@@ -68,6 +69,9 @@ resource "aws_opensearch_domain" "opensearch" {
       content {
         availability_zone_count = try(var.cluster_config["availability_zone_count"], 1)
       }
+    }
+    cold_storage_options {
+      enabled = var.cold_storage_enabled
     }
   }
 
@@ -150,9 +154,41 @@ resource "aws_opensearch_domain" "opensearch" {
     tls_security_policy             = var.tls_security_policy
   }
 
-  auto_tune_options = var.auto_tune_options
+  dynamic "auto_tune_options" {
+    for_each = [var.auto_tune_options]
+    iterator = i
 
-  off_peak_window_options = var.off_peak_window_options
+    content {
+      desired_state       = i.value["desired_state"]
+      rollback_on_disable = i.value["rollback_on_disable"]
+    }
+  }
+
+  dynamic "off_peak_window_options" {
+    for_each = [var.off_peak_window_options]
+    iterator = i
+
+    content {
+      enabled = i.value["enabled"]
+
+      dynamic "off_peak_window" {
+        for_each = length(lookup(i.value, "off_peak_window", "")) == 0 ? [] : [lookup(i.value, "off_peak_window", "")]
+        iterator = p
+
+        content {
+          dynamic "window_start_time" {
+            for_each = length(lookup(p.value, "window_start_time", "")) == 0 ? [] : [lookup(p.value, "window_start_time", "")]
+            iterator = m
+
+            content {
+              hours   = m.value["hours"]
+              minutes = m.value["minutes"]
+            }
+          }
+        }
+      }
+    }
+  }
 
   tags       = var.tags
   depends_on = [aws_iam_service_linked_role.es[0], time_sleep.role_dependency]

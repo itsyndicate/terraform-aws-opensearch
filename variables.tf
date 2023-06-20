@@ -231,9 +231,9 @@ variable "tags" {
 }
 
 variable "sg_ids" {
-  type        = string
+  type        = list(string)
   description = "Use any pre-existing SGs."
-  default     = ""
+  default     = [""]
 }
 
 variable "create_linked_role" {
@@ -243,11 +243,17 @@ variable "create_linked_role" {
 }
 
 variable "auto_tune_options" {
-  type        = map(any)
+  type        = any
   description = "Configuration block for the Auto-Tune options of the domain"
 }
 
 variable "off_peak_window_options" {
   type        = any
   description = "Configuration to add Off Peak update options"
+}
+
+variable "cold_storage_enabled" {
+  type        = bool
+  description = "Whether to enable cold storage"
+  default     = false
 }
