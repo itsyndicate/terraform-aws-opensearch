@@ -116,13 +116,17 @@ resource "aws_opensearch_domain" "opensearch" {
     }
   }
 
+  dynamic "ebs_options" {
+    for_each = [var.ebs_options]
+    iterator = i
 
-  ebs_options {
-    ebs_enabled = var.ebs_enabled
-    iops        = var.iops
-    throughput  = var.throughput
-    volume_size = var.volume_size
-    volume_type = var.volume_type
+    content {
+      ebs_enabled = i.value["ebs_enabled"]
+      volume_type = i.value["ebs_enabled"] == true ? i.value["volume_type"] : null
+      volume_size = i.value["ebs_enabled"] == true ? i.value["volume_size"] : null
+      iops        = i.value["volume_type"] == "gp3" ? i.value["iops"] : null
+      throughput  = i.value["volume_type"] == "gp3" ? i.value["throughput"] : null
+    }
   }
 
   node_to_node_encryption {
@@ -161,6 +165,26 @@ resource "aws_opensearch_domain" "opensearch" {
     content {
       desired_state       = i.value["desired_state"]
       rollback_on_disable = i.value["rollback_on_disable"]
+
+      dynamic "maintenance_schedule" {
+        for_each = i.value["rollback_on_disable"] == "DEFAULT_ROLLBACK" ? [lookup(i.value, "maintenance_schedule", "")] : []
+        iterator = m
+
+        content {
+          start_at                       = m.value["start_at"]
+          cron_expression_for_recurrence = m.value["cron_expression_for_recurrence"]
+
+          dynamic "duration" {
+            for_each = length(lookup(i.value, "duration", "")) == 0 ? [] : [lookup(i.value, "duration", "")]
+            iterator = p
+
+            content {
+              value = p.value["value"]
+              unit  = lookup(p.value, "unit", "HOURS")
+            }
+          }
+        }
+      }
     }
   }
 

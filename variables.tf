@@ -65,18 +65,6 @@ variable "custom_endpoint_certificate_arn" {
   default     = null
 }
 
-variable "volume_size" {
-  description = "Volume size of ebs storage."
-  type        = number
-  default     = 10
-}
-
-variable "volume_type" {
-  description = "Volume type of ebs storage."
-  type        = string
-  default     = "gp2"
-}
-
 variable "access_policy" {
   description = "Access policy to OpenSearch. If `default_policy_for_fine_grained_access_control` is enabled, this policy would be overwritten."
   type        = string
@@ -163,12 +151,6 @@ variable "create_a_record" {
   default     = true
 }
 
-variable "ebs_enabled" {
-  type        = bool
-  description = "EBS enabled"
-  default     = true
-}
-
 variable "aws_service_name_for_linked_role" {
   type        = string
   description = "AWS service name for linked role."
@@ -186,18 +168,6 @@ variable "advanced_options" {
   description = "Key-value string pairs to specify advanced configuration options."
   type        = map(string)
   default     = {}
-}
-
-variable "iops" {
-  description = "Baseline input/output (I/O) performance of EBS volumes attached to data nodes."
-  type        = number
-  default     = null
-}
-
-variable "throughput" {
-  description = "Specifies the throughput."
-  type        = number
-  default     = null
 }
 
 variable "cluster_config" {
@@ -245,15 +215,23 @@ variable "create_linked_role" {
 variable "auto_tune_options" {
   type        = any
   description = "Configuration block for the Auto-Tune options of the domain"
+  default     = null
 }
 
 variable "off_peak_window_options" {
   type        = any
   description = "Configuration to add Off Peak update options"
+  default     = null
 }
 
 variable "cold_storage_enabled" {
   type        = bool
   description = "Whether to enable cold storage"
   default     = false
+}
+
+variable "ebs_options" {
+  type        = any
+  description = "Configuration block for EBS related options, may be required based on chosen instance size"
+  default     = null
 }
