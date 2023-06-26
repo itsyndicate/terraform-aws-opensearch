@@ -77,18 +77,6 @@ variable "tls_security_policy" {
   default     = "Policy-Min-TLS-1-2-2019-07"
 }
 
-variable "subnet_ids" {
-  description = "CIDS blocks of subnets."
-  type        = list(string)
-  default     = []
-}
-
-variable "inside_vpc" {
-  description = "Openserach inside VPC."
-  type        = bool
-  default     = false
-}
-
 variable "cognito_enabled" {
   description = "Cognito authentification enabled for OpenSearch."
   type        = bool
@@ -176,34 +164,16 @@ variable "cluster_config" {
   default     = {}
 }
 
-variable "encrypt_at_rest" {
-  description = "Encrypt at rest."
-  type        = any
-  default     = {}
-}
-
 variable "log_publishing_options" {
   description = "Encrypt at rest."
   type        = any
   default     = {}
 }
 
-variable "node_to_node_encryption" {
-  type        = bool
-  description = "Is node to node encryption enabled."
-  default     = false
-}
-
 variable "tags" {
   description = "Tags."
   type        = map(any)
   default     = {}
-}
-
-variable "sg_ids" {
-  type        = list(string)
-  description = "Use any pre-existing SGs."
-  default     = [""]
 }
 
 variable "create_linked_role" {
@@ -233,5 +203,23 @@ variable "cold_storage_enabled" {
 variable "ebs_options" {
   type        = any
   description = "Configuration block for EBS related options, may be required based on chosen instance size"
+  default     = null
+}
+
+variable "node_to_node_encryption" {
+  type        = any
+  description = "Configuration block for node-to-node encryption options"
+  default     = null
+}
+
+variable "vpc_options" {
+  type        = any
+  description = "Configuration block for VPC related options. Adding or removing this configuration forces a new resource"
+  default     = null
+}
+
+variable "encrypt_at_rest" {
+  type        = any
+  description = "Configuration block for encrypt at rest options. Only available for certain instance types"
   default     = null
 }

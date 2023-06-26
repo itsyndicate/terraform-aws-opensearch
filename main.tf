@@ -37,10 +37,12 @@ resource "aws_opensearch_domain" "opensearch" {
   advanced_options = var.advanced_options
 
   dynamic "vpc_options" {
-    for_each = var.inside_vpc ? [1] : []
+    for_each = var.vpc_options == null ? [] : [var.vpc_options]
+    iterator = i
+
     content {
-      subnet_ids         = var.subnet_ids
-      security_group_ids = var.sg_ids
+      subnet_ids         = i.value["subnet_ids"]
+      security_group_ids = lookup(i.value, "security_group_ids", null)
     }
   }
 
@@ -75,9 +77,14 @@ resource "aws_opensearch_domain" "opensearch" {
     }
   }
 
-  encrypt_at_rest {
-    enabled    = try(var.encrypt_at_rest["enabled"], false)
-    kms_key_id = try(var.encrypt_at_rest["kms_key_id"], "")
+  dynamic "encrypt_at_rest" {
+    for_each = var.encrypt_at_rest == null ? [] : [var.encrypt_at_rest]
+    iterator = i
+
+    content {
+      enabled    = i.value["enabled"]
+      kms_key_id = lookup(i.value, "kms_key_id", null)
+    }
   }
 
   dynamic "log_publishing_options" {
@@ -117,7 +124,7 @@ resource "aws_opensearch_domain" "opensearch" {
   }
 
   dynamic "ebs_options" {
-    for_each = [var.ebs_options]
+    for_each = var.ebs_options == null ? [] : [var.ebs_options]
     iterator = i
 
     content {
@@ -129,8 +136,13 @@ resource "aws_opensearch_domain" "opensearch" {
     }
   }
 
-  node_to_node_encryption {
-    enabled = var.node_to_node_encryption
+  dynamic "node_to_node_encryption" {
+    for_each = var.node_to_node_encryption == null ? [] : [var.node_to_node_encryption]
+    iterator = i
+
+    content {
+      enabled = i.value["enabled"]
+    }
   }
 
   access_policies = var.access_policy == null && var.default_policy_for_fine_grained_access_control ? (<<CONFIG
@@ -159,7 +171,7 @@ resource "aws_opensearch_domain" "opensearch" {
   }
 
   dynamic "auto_tune_options" {
-    for_each = [var.auto_tune_options]
+    for_each = var.auto_tune_options == null ? [] : [var.auto_tune_options]
     iterator = i
 
     content {
@@ -189,7 +201,7 @@ resource "aws_opensearch_domain" "opensearch" {
   }
 
   dynamic "off_peak_window_options" {
-    for_each = [var.off_peak_window_options]
+    for_each = var.off_peak_window_options == null ? [] : [var.off_peak_window_options]
     iterator = i
 
     content {
