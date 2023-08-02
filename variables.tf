@@ -14,32 +14,6 @@ variable "name" {
   type        = string
 }
 
-
-variable "master_user_name" {
-  description = "Master username for accessing OpenSerach."
-  type        = string
-  default     = "admin"
-}
-
-
-variable "master_password" {
-  description = "Master password for accessing OpenSearch. If not specified password will be randomly generated. Password will be stored in AWS `System Manager` -> `Parameter Store` "
-  type        = string
-  default     = ""
-}
-
-variable "master_user_arn" {
-  description = "Master user ARN for accessing OpenSearch. If this is set, `advanced_security_options_enabled` must be set to true and  `internal_user_database_enabled` should be set to false."
-  type        = string
-  default     = ""
-}
-
-variable "instance_type" {
-  description = "Instance type."
-  type        = string
-  default     = "t3.small.search"
-}
-
 variable "domain_endpoint_options_enforce_https" {
   description = "Enforce https."
   type        = bool
@@ -89,13 +63,6 @@ variable "zone_id" {
   default     = ""
 }
 
-variable "advanced_security_options_enabled" {
-  type        = bool
-  description = "If advanced security options is enabled."
-  default     = false
-}
-
-
 variable "identity_pool_id" {
   type        = string
   description = "Cognito identity pool id."
@@ -121,18 +88,6 @@ variable "implicit_create_cognito" {
   default     = true
 }
 
-variable "internal_user_database_enabled" {
-  type        = bool
-  description = "Internal user database enabled. This should be enabled if we want authentication with master username and master password."
-  default     = false
-}
-
-variable "anonymous_auth_enabled" {
-  type        = bool
-  description = "Whether Anonymous auth is enabled. Enables fine-grained access control on an existing domain"
-  default     = true
-}
-
 variable "create_a_record" {
   type        = bool
   description = "Create A record for custom domain."
@@ -155,12 +110,6 @@ variable "default_policy_for_fine_grained_access_control" {
 variable "advanced_options" {
   description = "Key-value string pairs to specify advanced configuration options."
   type        = map(string)
-  default     = {}
-}
-
-variable "cluster_config" {
-  description = "Auto tune options from documentation."
-  type        = any
   default     = {}
 }
 
@@ -194,12 +143,6 @@ variable "off_peak_window_options" {
   default     = null
 }
 
-variable "cold_storage_enabled" {
-  type        = bool
-  description = "Whether to enable cold storage"
-  default     = false
-}
-
 variable "ebs_options" {
   type        = any
   description = "Configuration block for EBS related options, may be required based on chosen instance size"
@@ -221,5 +164,17 @@ variable "vpc_options" {
 variable "encrypt_at_rest" {
   type        = any
   description = "Configuration block for encrypt at rest options. Only available for certain instance types"
+  default     = null
+}
+
+variable "advanced_security_options" {
+  type        = any
+  description = "Configuration block for fine-grained access control"
+  default     = null
+}
+
+variable "cluster_config" {
+  type        = any
+  description = "Configuration block for the cluster of the domain"
   default     = null
 }

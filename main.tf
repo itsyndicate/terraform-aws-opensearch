@@ -23,14 +23,25 @@ resource "aws_opensearch_domain" "opensearch" {
   domain_name    = var.name
   engine_version = var.engine_version
 
-  advanced_security_options {
-    enabled                        = var.advanced_security_options_enabled
-    internal_user_database_enabled = var.internal_user_database_enabled
-    anonymous_auth_enabled         = var.anonymous_auth_enabled
-    master_user_options {
-      master_user_arn      = var.master_user_arn == "" ? try(aws_iam_role.authenticated[0].arn, null) : var.master_user_arn
-      master_user_name     = var.internal_user_database_enabled ? var.master_user_name : ""
-      master_user_password = var.internal_user_database_enabled ? var.master_password : ""
+  dynamic "advanced_security_options" {
+    for_each = var.advanced_security_options == null ? [] : [var.advanced_security_options]
+    iterator = i
+
+    content {
+      enabled                        = lookup(i.value, "enabled", true)
+      anonymous_auth_enabled         = lookup(i.value, "anonymous_auth_enabled", false)
+      internal_user_database_enabled = lookup(i.value, "internal_user_database_enabled", false)
+
+      dynamic "master_user_options" {
+        for_each = length(lookup(i.value, "master_user_options", "")) == 0 ? [] : [lookup(i.value, "master_user_options", "")]
+        iterator = p
+
+        content {
+          master_user_arn      = lookup(i.value, "internal_user_database_enabled", false) ? lookup(p.value, "master_user_arn", null) : try(aws_iam_role.authenticated[0].arn, null)
+          master_user_name     = lookup(i.value, "internal_user_database_enabled", false) ? p.value["master_user_name"] : null
+          master_user_password = lookup(i.value, "internal_user_database_enabled", false) ? p.value["master_user_password"] : null
+        }
+      }
     }
   }
 
@@ -56,24 +67,38 @@ resource "aws_opensearch_domain" "opensearch" {
     }
   }
 
-  cluster_config {
-    instance_type            = var.instance_type
-    dedicated_master_enabled = try(var.cluster_config["dedicated_master_enabled"], false)
-    dedicated_master_count   = try(var.cluster_config["dedicated_master_count"], 0)
-    dedicated_master_type    = try(var.cluster_config["dedicated_master_type"], "t2.small.elasticsearch")
-    instance_count           = try(var.cluster_config["instance_count"], 1)
-    warm_enabled             = try(var.cluster_config["warm_enabled"], false)
-    warm_count               = try(var.cluster_config["warm_enabled"], false) ? try(var.cluster_config["warm_count"], null) : null
-    warm_type                = try(var.cluster_config["warm_type"], false) ? try(var.cluster_config["warm_type"], null) : null
-    zone_awareness_enabled   = try(var.cluster_config["zone_awareness_enabled"], false)
-    dynamic "zone_awareness_config" {
-      for_each = try(var.cluster_config["availability_zone_count"], 1) > 1 && try(var.cluster_config["zone_awareness_enabled"], false) ? [1] : []
-      content {
-        availability_zone_count = try(var.cluster_config["availability_zone_count"], 1)
+  dynamic "cluster_config" {
+    for_each = var.cluster_config == null ? [] : [var.cluster_config]
+    iterator = i
+
+    content {
+      instance_type            = lookup(i.value, "instance_type", null)
+      instance_count           = lookup(i.value, "instance_count", null)
+      dedicated_master_enabled = lookup(i.value, "dedicated_master_enabled", false)
+      dedicated_master_count   = lookup(i.value, "dedicated_master_count", null)
+      dedicated_master_type    = lookup(i.value, "dedicated_master_type", null)
+      warm_enabled             = lookup(i.value, "warm_enabled", false)
+      warm_count               = lookup(i.value, "warm_enabled", false) ? i.value["warm_count"] : null
+      warm_type                = lookup(i.value, "warm_enabled", false) ? i.value["warm_type"] : null
+      zone_awareness_enabled   = lookup(i.value, "zone_awareness_enabled", false)
+
+      dynamic "zone_awareness_config" {
+        for_each = length(lookup(i.value, "zone_awareness_config", "")) != 0 && lookup(i.value, "zone_awareness_enabled", false) ? [lookup(i.value, "zone_awareness_config", "")] : []
+        iterator = p
+
+        content {
+          availability_zone_count = lookup(p.value, "availability_zone_count", 2)
+        }
       }
-    }
-    cold_storage_options {
-      enabled = var.cold_storage_enabled
+
+      dynamic "cold_storage_options" {
+        for_each = length(lookup(i.value, "cold_storage_options", "")) == 0 ? [] : [lookup(i.value, "cold_storage_options", "")]
+        iterator = m
+
+        content {
+          enabled = lookup(m.value, "enabled", false)
+        }
+      }
     }
   }
 
