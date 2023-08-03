@@ -1,5 +1,13 @@
 # AWS OpenSearch Terraform Module
 
+## ⚠️ Important information ⚠️
+
+* Unfortunately, I don't have time to create an appropriate `README` and different examples of usage for this module currently.
+
+* You can find `actual` examples of usage in the root `examples/complete` folder (now available only for `VPC configuration`). ***Keep in mind they show implementation with `Terragrunt`***.
+
+* I'm open to community contributions 🤗 Don't hesitate to create `Issues` or `Pull requests`!
+
 ## Source
 
 Forked from https://github.com/cyberlabrs/terraform-aws-opensearch
